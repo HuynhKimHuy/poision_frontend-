@@ -1,25 +1,50 @@
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const ProtectedRoute = () => {
-  const { accessToken, refresh } = useAuthStore();
+  const { accessToken, user, loading, refresh, fetchMe } = useAuthStore();
+  const location = useLocation();
   const [checking, setChecking] = useState(true);
+  const [resolvedToken, setResolvedToken] = useState<string | null>(accessToken);
 
   useEffect(() => {
     let active = true;
-    const run = async () => {
-      if (!accessToken) await refresh();
-      if (active) setChecking(false);
+
+    const init = async () => {
+      const token = accessToken ?? (await refresh());
+
+      if (token && !user) {
+        await fetchMe(token);
+      }
+
+      if (active) {
+        setResolvedToken(token ?? null);
+        setChecking(false);
+      }
     };
-    run();
+
+    init();
+
     return () => {
       active = false;
     };
-  }, [accessToken, refresh]);
+  }, [accessToken, refresh, fetchMe, user]);
 
-  if (checking) return null;
-  if (!accessToken) return <Navigate to="/signin" replace />;
+  if (checking || loading) {
+    return <div className="flex h-screen">Dang tai trang...</div>;
+  }
+
+  if (!resolvedToken) {
+    return (
+      <Navigate
+        to="/signin"
+        replace
+        state={{ from: location.pathname, user }}
+      />
+    );
+  }
+
   return <Outlet />;
 };
 
