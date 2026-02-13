@@ -22,11 +22,23 @@ export const authService = {
             { email, password },
             { withCredentials: true }
         )
-        return res.data 
+        return res.data
 
     },
 
     logOut: async () => {
         await api.post('/auth/logout', {}, { withCredentials: true })
+    },
+
+    fetchMe: async (accessToken: string) => {
+        const res = await api.get("/user/me", {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        return res.data.metadata;
+    },
+    refresh: async () => {
+        const res = await api.post("/auth/refreshToken", {}, { withCredentials: true });
+        return res.data.metadata.tokens.accessToken;
     }
+
 }

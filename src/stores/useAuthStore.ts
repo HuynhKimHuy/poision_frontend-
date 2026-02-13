@@ -1,56 +1,57 @@
 import { create } from "zustand";
-import {toast} from 'sonner'
+import { toast } from 'sonner'
 import { authService } from "@/service/authService";
 import type { authState } from "@/types/store";
-export const useAuthStore = create<authState>((set,get)=>({
+export const useAuthStore = create<authState>((set, get) => ({
   accessToken: null,
-  user :null,
-  loading : false,
+  user: null,
+  loading: false,
 
-  clearState: async()=>{
+  clearState: async () => {
     set({
-      accessToken:null,
-      user:null,
-      loading:false
+      accessToken: null,
+      user: null,
+      loading: false
     })
   },
 
-  signUp : async (userName, password, email , firstName , lastName)=>{
-    try{
-    set({loading:true})
-    await authService.signUp(userName, password, email, firstName, lastName)
-
-    toast.success('Đăng kí thành công! bạn sẽ được chuyển đến trang đăng nhập')
-
-    } catch(error){
-      console.log(error);
-      toast.error(" Đăng kí không thành công ")
-      
-    } finally{
-      set({loading:false})
-    }
-  },
-
-
-  signIn : async ( email, password )=>{
+  signUp: async (userName, password, email, firstName, lastName) => {
     try {
-      set({loading:true})
-      const {accessToken} = await authService.signIn(email, password) 
+      set({ loading: true })
+      await authService.signUp(userName, password, email, firstName, lastName)
 
-      set({
-        accessToken: accessToken,
-      })
+      toast.success('Đăng kí thành công! bạn sẽ được chuyển đến trang đăng nhập')
 
-    toast.success('wellcome back')
     } catch (error) {
       console.log(error);
-      toast.error('login in error')
-    } finally{
-      set({loading:false})
+      toast.error(" Đăng kí không thành công ")
+
+    } finally {
+      set({ loading: false })
     }
   },
 
-  logOut: async()=>{
+
+  signIn: async (email, password) => {
+    try {
+      set({ loading: true });
+      const res = await authService.signIn(email, password);
+      const accessToken = res?.metadata?.tokens?.accessToken;
+      if (!accessToken) throw new Error("Missing access token");
+
+      set({ accessToken });
+      await get().fetchMe(accessToken);
+      toast.success("wellcome back");
+    } catch (error) {
+      console.log(error);
+      toast.error("login in error");
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+
+  logOut: async () => {
     try {
       get().clearState()
       await authService.logOut()
@@ -58,8 +59,41 @@ export const useAuthStore = create<authState>((set,get)=>({
     } catch (error) {
       console.log(error);
       toast.error("Lỗi Khi Đăng Xuất")
-    } 
-  }
+    }
+  },
+
+  fetchMe: async (accessToken: string) => {
+    try {
+      set({ loading: true })
+      if (!accessToken) throw new Error("Missing access token")
+      const user = await authService.fetchMe(accessToken)
+      set({ user })
+      return user
+    } catch (error) {
+      console.log(error)
+      toast.error("Không lấy được thông tin user")
+      return null
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  refresh: async () => {
+    try {
+      set({ loading: true });
+      const res = await authService.refresh();
+      set({ accessToken: res });
+      return res;
+      
+    } catch (error) {
+      console.log(error);
+      toast.error("Refresh token lỗi");
+      get().clearState()
+    } finally {
+      set({ loading: false });
+    }
+  },
+
 
 }
- ))
+))

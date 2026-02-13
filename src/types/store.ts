@@ -1,14 +1,17 @@
-import type  { User } from "./user"
+import type { User } from "./user"
 export interface authState {
-    accessToken : string | null,
+    accessToken: string | null,
     user: User | null,
     loading: boolean,
-    signUp: (userName: string, password:string, email: string, firstName : string , lastName : string) => Promise <void>
-    
-    signIn: (email: string, password: string) => Promise <void>
+    signUp: (userName: string, password: string, email: string, firstName: string, lastName: string) => Promise<void>
 
-    clearState:()=>void
+    signIn: (email: string, password: string) => Promise<void>
 
-    logOut:()=>Promise<void>
+    clearState: () => void
+
+    logOut: () => Promise<void>
+    fetchMe: (accessToken: string) => Promise<any>
+    refresh: () => Promise<string | null>
+
 }
 
