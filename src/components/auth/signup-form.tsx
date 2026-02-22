@@ -127,7 +127,7 @@ export function SignupForm({
 
               {/* signup button  */}
               <Button type="submit"
-                className="w-full">
+                className="w-full bg-primary">
                 Tạo Tài Khoản
               </Button>
 
