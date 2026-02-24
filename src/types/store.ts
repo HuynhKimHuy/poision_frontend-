@@ -1,3 +1,4 @@
+
 import type { User } from "./user"
 export interface authState {
     accessToken: string | null,
@@ -15,3 +16,8 @@ export interface authState {
 
 }
 
+export interface themeState {
+    isDarkMode: boolean,
+    toggleTheme: () => void,
+    setTheme: (isDark: boolean) => void
+}

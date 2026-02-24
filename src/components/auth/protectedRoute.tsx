@@ -3,44 +3,42 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const ProtectedRoute = () => {
-  const { accessToken, user, loading, refresh, fetchMe } = useAuthStore();
+  const { user, loading, refresh, fetchMe } = useAuthStore();
   const location = useLocation();
   const [checking, setChecking] = useState(true);
-  const [resolvedToken, setResolvedToken] = useState<string | null>(accessToken);
 
   useEffect(() => {
-    let active = true;
+    const checkAuth = async () => {
+      try {
+        // Luôn thử refresh token đầu tiên để verify token còn hợp lệ
+        const newToken = await refresh();
 
-    const init = async () => {
-      const token = accessToken ?? (await refresh());
-
-      if (token && !user) {
-        await fetchMe(token);
-      }
-
-      if (active) {
-        setResolvedToken(token ?? null);
+        // Nếu refresh thành công, lấy user info
+        if (newToken) {
+          await fetchMe(newToken);
+        }
+        // Nếu refresh fail, clearState() đã được gọi trong refresh()
+      } catch (error) {
+        console.log("Auth check error:", error);
+      } finally {
         setChecking(false);
       }
     };
 
-    init();
-
-    return () => {
-      active = false;
-    };
-  }, [accessToken, refresh, fetchMe, user]);
+    checkAuth();
+  }, []); // Empty dependency array - chỉ chạy 1 lần khi mount
 
   if (checking || loading) {
-    return <div className="flex h-screen">Dang tai trang...</div>;
+    return <div className="flex h-screen">Đang tải trang...</div>;
   }
 
-  if (!resolvedToken) {
+  // Nếu không có user sau khi check, redirect to signin
+  if (!user) {
     return (
       <Navigate
         to="/signin"
         replace
-        state={{ from: location.pathname, user }}
+        state={{ from: location.pathname }}
       />
     );
   }

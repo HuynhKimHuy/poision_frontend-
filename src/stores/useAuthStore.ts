@@ -26,6 +26,8 @@ export const useAuthStore = create<authState>()(
           user: null,
           loading: false,
         });
+        // Đảm bảo localStorage được clear
+        localStorage.removeItem('auth-storage');
       },
 
       signUp: async (userName, password, email, firstName, lastName) => {
