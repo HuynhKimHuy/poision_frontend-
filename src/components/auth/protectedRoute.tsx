@@ -3,21 +3,26 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const ProtectedRoute = () => {
-  const { user, loading, refresh, fetchMe } = useAuthStore();
+  const { user, accessToken, loading, refresh, fetchMe } = useAuthStore();
   const location = useLocation();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Luôn thử refresh token đầu tiên để verify token còn hợp lệ
+        // Nếu đã có user từ store (vừa đăng nhập), không cần refresh lại
+        if (user && accessToken) {
+          setChecking(false);
+          return;
+        }
+
+        // Nếu không có user, thử refresh token để lấy thông tin mới
         const newToken = await refresh();
 
         // Nếu refresh thành công, lấy user info
         if (newToken) {
           await fetchMe(newToken);
         }
-        // Nếu refresh fail, clearState() đã được gọi trong refresh()
       } catch (error) {
         console.log("Auth check error:", error);
       } finally {

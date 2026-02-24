@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 import { authService } from "@/service/authService";
 import type { authState } from "@/types/store";
+import { useChatStore } from "./useChatStore";
+
 
 type ApiError = {
   response?: {
@@ -28,6 +30,7 @@ export const useAuthStore = create<authState>()(
         });
         // Đảm bảo localStorage được clear
         localStorage.removeItem('auth-storage');
+        useChatStore.getState().resetChatState();
       },
 
       signUp: async (userName, password, email, firstName, lastName) => {
@@ -46,12 +49,18 @@ export const useAuthStore = create<authState>()(
       signIn: async (email, password) => {
         try {
           set({ loading: true });
+
+          localStorage.removeItem('auth-storage');
+          useChatStore.getState().resetChatState();
+
+
           const res = await authService.signIn(email, password);
           const accessToken = res?.metadata?.tokens?.accessToken;
           if (!accessToken) throw new Error("Missing access token");
 
           set({ accessToken });
           await get().fetchMe(accessToken);
+          useChatStore.getState().loadConversations();
           toast.success("wellcome back");
           return true;
         } catch (error) {
@@ -115,6 +124,9 @@ export const useAuthStore = create<authState>()(
     }),
     {
       name: "auth-storage",
+      partialize: (state) => ({
+        user: state.user,
+      })
     }
   )
 );

@@ -3,8 +3,19 @@ import SignUpPage from './pages/SignUpPage';
 import SignInPage from './pages/SignInPage';
 import HomePage from './pages/HomePage';
 import ProtectedRoute from './components/auth/protectedRoute';
+import { useEffect } from 'react';
+
+import { useThemeStore } from './stores/useThemeStore';
+
 
 function App() {
+  const { isDarkMode, setTheme } = useThemeStore();
+  useEffect(() => {
+    setTheme(isDarkMode);
+  }, [isDarkMode]);
+
+
+
   return (
     <BrowserRouter>
       <Routes>
