@@ -1,15 +1,23 @@
 import api from "@/lib/axios";
-import type { ConversationResponse } from "@/types/chat";
+import type { ConversationResponse, Message } from "@/types/chat";
 
+interface fetchMessageProps {
+    messages:Message[]
+    cursor?: string
+}
+const limit = 50
 export const fetchConversations = async (): Promise<ConversationResponse> => {
-    try {
-        const res = await api.get("/conversation");
-        console.log("✅ [chatService] Conversations fetched:", res.data);
+        const res = await api.get("/conversation");       
         return res.data.metadata;
-    } catch (error: any) {
-        console.error("❌ [chatService] Error fetching conversations:", error.response?.status, error.response?.data);
-        console.error("Full error:", error);
-        throw error;
+    
+}
+
+export const fetchMessages = async(fetchConversationsId:string, cursor?:string):Promise<fetchMessageProps> => {
+    const res = await api.get(`/conversation/${fetchConversationsId}/messages?limit=${limit}&cursor=${cursor}`);
+     
+    return {
+        messages: res.data.metadata.messages,
+        cursor: res.data.metadata.nextCursor
     }
 }
 

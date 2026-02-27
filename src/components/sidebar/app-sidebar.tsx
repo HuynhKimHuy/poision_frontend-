@@ -2,20 +2,13 @@
 
 import * as React from "react"
 import {
-  BookOpen,
-  Bot,
-  Frame,
-  Map,
   Moon,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-  Sun,
+  Sun
 } from "lucide-react"
 
 import NewGroupChatModal from "../chat/NewGroupChatModal.tsx"
 
-import { NavUser } from "@/components/sidebar/nav-user"
+
 import {
   Sidebar,
   SidebarContent,
@@ -37,9 +30,12 @@ import DirectMessageList from "../chat/Chat Card/DirectMessageList.tsx"
 
 import { useThemeStore } from "@/stores/useThemeStore"
 
+import { useAuthStore } from "@/stores/useAuthStore.ts"
+import { NavUser } from "./nav-user.tsx"
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
+  const {user} = useAuthStore()
   const { isDarkMode, toggleTheme } = useThemeStore()
   return (
     <Sidebar variant="inset" {...props}>
@@ -115,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 
       <SidebarFooter>
-        
+        {user && <NavUser user={user} />}
       </SidebarFooter>
     </Sidebar>
   )

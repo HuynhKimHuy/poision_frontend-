@@ -13,7 +13,7 @@ export interface authState {
 
     logOut: () => Promise<void>
     fetchMe: (accessToken: string) => Promise<any>
-    
+    refresh: () => Promise<string|null>
 
 }
 
@@ -29,13 +29,14 @@ export interface chatState {
     messages: Record<string, {
         items: Message[];
         hasMore: boolean;
-        nexCursor?: string | null;
+        nextCursor?: string | null;
 
     }>, // key = conversationId
     activeConversationId: string | null,
     loading:boolean,
+    messagesLoading:boolean,
     resetChatState: () => void,
     setActiveConversation: (conversationId: string | null) => void,
-    
     loadConversations: () => Promise<void>,
+    fetchMessages: (conversationId: string, cursor?: string) => Promise<void>
 }

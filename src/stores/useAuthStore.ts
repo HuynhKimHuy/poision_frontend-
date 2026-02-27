@@ -80,6 +80,23 @@ export const useAuthStore = create<authState>()(
           return null;
         }
       },
+
+      refresh:async()=>{
+       
+        const {user,fetchMe} = get();
+        if(!user){
+          await fetchMe(get().accessToken!);
+        }
+        try{
+          set({loading: true})
+          const newAccessToken = await authService.refresh();
+          set({ accessToken: newAccessToken });
+          return newAccessToken;
+        } catch(error) {
+          console.error("Refresh token error:", error);
+          return null;
+        }
+      }
     }),
     {
       name: "auth-storage",
