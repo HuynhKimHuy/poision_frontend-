@@ -34,13 +34,14 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             
             try {
-                const res = await axios.post("/api/auth/refreshToken", {}, { withCredentials: true });
+                const res = await api.post("/auth/refreshToken", {}, { withCredentials: true });
                 const newAccessToken = res.data.metadata.tokens.accessToken;
 
                 // Cập nhật token mới vào store
                 useAuthStore.setState({ accessToken: newAccessToken });
 
                 // Retry request với token mới
+                originalRequest.headers = originalRequest.headers ?? {};
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
             } catch (refreshError) {

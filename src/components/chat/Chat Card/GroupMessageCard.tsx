@@ -18,10 +18,16 @@ const GroupMessageCard = ({ conversation }: { conversation: Conversation }) => {
     const lastMessage = conversation.lastMessage?.content ?? ""
 
     const handleSelectConversation = async (id: string) => {
+         if (activeConversationId === id) {
+            setActiveConversation(null)
+            return
+        }
+
         setActiveConversation(id)
         // Load messages if not already loaded
         if (!messages[id]) {
             // TODO: fetch messages for this conversation
+            await useChatStore.getState().fetchMessages(id)
         }
     }
 

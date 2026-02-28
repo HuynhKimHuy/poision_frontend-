@@ -72,8 +72,42 @@ export const useChatStore = create<chatState>()(
 
                     const { messages: fetched, cursor } = await fetchMessages(converId, nextCurrsor)
 
-                } catch (error) {
+                    /**{
+                      messages: [
+                        {
+                     _id: "69a1703df8fe6c17100c1654",
+                     conversation: "69a1703df8fe6c17100c1652",
+                    senderId: "698e9baeebf6e011ca834a26",
+                    content: "Helo Đây là Tin nhắn thứ 1 tới Huy 20",
+                    createdAt: "2026-02-27T10:21:49.971Z",
+                    updatedAt: "2026-02-27T10:21:49.971Z",
+                     __v: 0
+                    }
+                  ],
+                cursor: null
+                 }
+                 */
+                const processedMessages = fetched.map((msg)=>({
+                    ...msg,
+                    isOwn: msg.senderId === user?._id
+                }))
 
+               set((state)=>{
+                const prev = state.messages[converId]?.items??[]
+                const merged  = prev.length > 0 ?[...processedMessages,...prev]: processedMessages
+                return{
+                    messages:{
+                        ...state.messages,
+                        [converId]:{
+                            items: merged,
+                            hasMore: !!cursor ,
+                            nextCursor: cursor ?? null
+                    }}
+                }
+               })
+                } catch (error) {
+                    console.log("lỗi xảy ra khi fetchMessages" , error);
+                    
                 }
 
             }
