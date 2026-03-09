@@ -5,6 +5,7 @@ import {
 	fetchConversations,
 	fetchMessages,
 	sendDirectMessage,
+	sendGroupMessage,
 } from "@/service/chatSevice"
 import { useAuthStore } from "./useAuthStore"
 
@@ -109,8 +110,7 @@ export const useChatStore = create<chatState>()(
 
 					set((state) => ({
 						conversations: state.conversations.map((c) => {
-							if (c._id !== targetConversationId) return c
-							if (!c.lastMessage) return c
+							if (c._id !== targetConversationId || !c.lastMessage) return c
 
 							return {
 								...c,
@@ -127,7 +127,24 @@ export const useChatStore = create<chatState>()(
 			},
 
 			sendGroupMessage: async (_conversationId, _content, _imageUrl) => {
-				// Implementation will be added later
+				try {
+					await sendGroupMessage(_conversationId, _content, _imageUrl)
+					set((state) => ({
+						conversations: state.conversations.map((c) => {
+							if (c._id !== _conversationId || !c.lastMessage) return c
+
+							return {
+								...c,
+								lastMessage: {
+									...c.lastMessage,
+									content: _content,
+								},
+							}
+						}),
+					}))
+				} catch (error) {
+					console.error("lỗi xảy ra khi sendGroupMessage", error)
+				}
 			},
 		}),
 		{

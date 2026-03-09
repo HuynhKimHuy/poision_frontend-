@@ -4,11 +4,32 @@ import { useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import EmojiPicker from "./Chat Card/EmojiPicker"
+import { useChatStore } from "@/stores/useChatStore"
 
-const MessageInput = () => {
+const MessageInput = ({selectedConversation}:{selectedConversation: any}) => {
 const {user } = useAuthStore()
 const [value , setValue] = useState("")
 
+
+    const sendMessage = async () => {
+        
+        if(!value.trim()) return
+        try {
+            if(selectedConversation.type === "direct"){
+             const participan = selectedConversation.participants.find((p: any) => p._id !== user?._id)
+             if(participan){
+                useChatStore.getState().sendDirectMessage(participan.userId, value, undefined, selectedConversation._id)
+                setValue("")
+             } 
+             else{
+                await useChatStore.getState().sendGroupMessage(selectedConversation._id, value)
+                setValue("")
+             }
+            }
+        } catch (error) {
+            console.error("Error sending message:", error)
+        }
+    }
     if(!user) {
         return null
     }
@@ -29,14 +50,13 @@ const [value , setValue] = useState("")
                 onChange={(e) => setValue(e.target.value)}
                 />
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-6 w-6 p-0 rounded-full hover:bg-primary-forground/10">
-                    {/* icon Emoji */}
-                    <EmojiPicker onChange={(emoji) => setValue((prev) => prev + emoji)} />
-                </Button>
+                <EmojiPicker onChange={(emoji) => setValue((prev) => prev + emoji)} />
             </div>
             
            </div>
-           <Button className="bg-gradient-chat hover:shadow-glow transition-smooth transform  rounded-full" disabled={!value.trim()}>
+           <Button 
+            onClick={sendMessage}
+            className="bg-gradient-chat hover:shadow-glow transition-smooth transform  rounded-full" disabled={!value.trim()}>
                 <Send className="size-4 text-white"/>
             </Button>
         </div>
