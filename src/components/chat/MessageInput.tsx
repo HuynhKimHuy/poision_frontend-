@@ -5,27 +5,27 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import EmojiPicker from "./Chat Card/EmojiPicker"
 import { useChatStore } from "@/stores/useChatStore"
+import type { Conversation } from "@/types/chat"
 
-const MessageInput = ({selectedConversation}:{selectedConversation: any}) => {
+const MessageInput = ({selectedConversation}:{selectedConversation: Conversation | null}) => {
 const {user } = useAuthStore()
 const [value , setValue] = useState("")
 
 
     const sendMessage = async () => {
-        
-        if(!value.trim()) return
+        if(!value.trim() || !selectedConversation) return
         try {
             if(selectedConversation.type === "direct"){
-             const participan = selectedConversation.participants.find((p: any) => p._id !== user?._id)
-             if(participan){
-                useChatStore.getState().sendDirectMessage(participan.userId, value, undefined, selectedConversation._id)
-                setValue("")
-             } 
-             else{
-                await useChatStore.getState().sendGroupMessage(selectedConversation._id, value)
-                setValue("")
-             }
+             const participan = selectedConversation.participants.find((p) => p.userId !== user?._id)
+             if(!participan) return
+
+             await useChatStore.getState().sendDirectMessage(participan.userId, value.trim(), undefined, selectedConversation._id)
+             setValue("")
+             return
             }
+
+            await useChatStore.getState().sendGroupMessage(selectedConversation._id, value.trim())
+            setValue("")
         } catch (error) {
             console.error("Error sending message:", error)
         }
@@ -33,7 +33,7 @@ const [value , setValue] = useState("")
     if(!user) {
         return null
     }
-
+    
     return (
         <div className="flex w-full items-center gap-2 p-3 min-h-[50px] bg-background rounded-md">   
            <Button variant="ghost" size="icon" className="h-8 w-8 p-0 rounded-full hover:bg-primary-forground/10">
@@ -43,6 +43,12 @@ const [value , setValue] = useState("")
            <div
             className="flex-1 relative">
             <Input 
+                onKeyDown={(e)=> {
+                    if(e.key === "Enter" && !e.shiftKey){
+                        e.preventDefault()
+                        sendMessage()
+                    }
+                }}
                 type="text" 
                 placeholder="Nhập Tin Nhắn ...." 
                 className=" w-full bg-transparent border-none focus:outline-none transition-smooth pr-10 resize-none "

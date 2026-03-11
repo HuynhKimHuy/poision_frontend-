@@ -94,13 +94,13 @@ export const useChatStore = create<chatState>()(
 				}
 			},
 
-			sendDirectMessage: async (receiverId, content, imageUrl, conversationId) => {
+			sendDirectMessage: async (recipientId, content, imageUrl, conversationId) => {
 				try {
 					const { activeConversationId } = get()
 					const targetConversationId = conversationId || activeConversationId
 
 					await sendDirectMessage(
-						receiverId,
+						recipientId,
 						content,
 						imageUrl,
 						targetConversationId || undefined

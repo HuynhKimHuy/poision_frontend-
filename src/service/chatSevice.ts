@@ -23,12 +23,12 @@ export const fetchMessages = async(fetchConversationsId:string, cursor?:string):
     }
 }
 
-export const sendDirectMessage = async( receiverId: string, content: string , imageUrl?: string , conversationId?: string ) => {
-    const res = await api.post(`/messages/direct`, { receiverId, content, imageUrl, conversationId });
+export const sendDirectMessage = async( recipientId: string, content: string , imageUrl?: string , conversationId?: string ) => {
+    const res = await api.post(`/message/direct`, { recipientId, content, imageUrl, conversationId });
     return res.data.metadata;
 }
 
 export const sendGroupMessage = async( conversationId: string, content: string , imageUrl?: string ) => {
-    const res = await api.post(`/messages/group`, { content, imageUrl, conversationId });
+    const res = await api.post(`/message/group`, { content, imageUrl, conversationId });
     return res.data.metadata;
 }
