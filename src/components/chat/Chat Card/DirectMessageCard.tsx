@@ -6,11 +6,13 @@ import { cn } from "@/lib/utils"
 import UserAvatar from "../UserAvata"
 import StatusBadge from "../StatusBadge"
 import UnreadCountBadge from "./UnreadBadge"
+import { useSocketStore } from "@/stores/socketStore"
 
 
 const DirectMessageCard = ({ conversation }: { conversation: Conversation }) => {
     const { user } = useAuthStore()
     const { activeConversationId, setActiveConversation, messages } = useChatStore()
+    const {onlineUsers} = useSocketStore()
     if (!user) return null
     const otherUser = conversation.participants.find(participant => participant.userId !== user?._id)
     const unreadCount = conversation.unreadCounts?.[user._id] || 0
@@ -38,9 +40,9 @@ const DirectMessageCard = ({ conversation }: { conversation: Conversation }) => 
             isActive={activeConversationId === conversation._id}
             unreadCount={unreadCount}
             leftSection={
-                <div className="flex items-center gap-3 relative">
+                <div className="relative">
                     <UserAvatar type="sidebar" name={otherUser?.displayName || otherUser?.userName || ""} />
-                    <StatusBadge status="offline" />
+                    <StatusBadge status={onlineUsers.includes(otherUser?.userId || "") ? "online" : "offline"} />
                     {unreadCount > 0 && <UnreadCountBadge UnreadCount={unreadCount} />}
                 </div>
             }

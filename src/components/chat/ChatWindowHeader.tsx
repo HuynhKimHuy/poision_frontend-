@@ -6,10 +6,12 @@ import { Separator } from "../ui/separator"
 import UserAvatar from "./UserAvata"
 import StatusBage from "./StatusBadge"
 import GroupchatAvatar from "./GroupchatAvatar"
+import { useSocketStore } from "@/stores/socketStore"
 
 const ChatWindowHeader = ({chat}:{chat?:Conversation }) => {
     const {conversations , activeConversationId} = useChatStore()
     chat = chat ?? conversations.find(c => c._id === activeConversationId) ?? undefined
+    const {onlineUsers} = useSocketStore()
     let otherUser
     if(!chat){
         return(
@@ -23,7 +25,7 @@ const ChatWindowHeader = ({chat}:{chat?:Conversation }) => {
         otherUser = otherUsers.length > 0 ? otherUsers[0] : null
     }
     return (
-        <header className="flex top-10 z-10 px-4 py-2 h-16 w-full items-center justify-between bg-background ">   
+        <header className="flex top-10 z-10 px-4 py-2 h-16 w-full items-center justify-between bg-background  ">   
             <div className="flex items-center gap-2 w-full"> 
                 <SidebarTrigger className="-ml-1 text-foreground "/>
                 <Separator 
@@ -39,7 +41,7 @@ const ChatWindowHeader = ({chat}:{chat?:Conversation }) => {
                             imageUrl={otherUser?.avatarUrl || undefined}
                             className=""
                             />
-                            <StatusBage status="online"/>
+                            <StatusBage status={onlineUsers.includes(otherUser?.userId || "") ? "online" : "offline"}/>
                             </>) :
                             <GroupchatAvatar
                             participants={chat.participants}
