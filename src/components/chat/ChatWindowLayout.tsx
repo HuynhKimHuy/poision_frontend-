@@ -22,7 +22,7 @@ const ChatWindowLayout = () => {
         // return <ChatWindowSkeleton/>
     }
     return (
-        <SidebarInset className="flex flex-col h-full flex-1 overflow-hidden rounded-sm shadow-md">
+        <SidebarInset className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-sm shadow-md">
            {/* <ChatWindowHeader/> */}
            <ChatWindowHeader chat={selectedConversation}/>       
            {/* <ChatWindowBody/> */}

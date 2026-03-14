@@ -8,55 +8,55 @@ import StatusBage from "./StatusBadge"
 import GroupchatAvatar from "./GroupchatAvatar"
 import { useSocketStore } from "@/stores/socketStore"
 
-const ChatWindowHeader = ({chat}:{chat?:Conversation }) => {
-    const {conversations , activeConversationId} = useChatStore()
+const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
+    const { conversations, activeConversationId } = useChatStore()
     chat = chat ?? conversations.find(c => c._id === activeConversationId) ?? undefined
-    const {onlineUsers} = useSocketStore()
+    const { onlineUsers } = useSocketStore()
     let otherUser
-    if(!chat){
-        return(
-            <header className="md:hidden sticky top-0 z-10 flex items-center gap-2 px-4 py-2 w-full">
-            <SidebarTrigger className="-ml-1 text-foreground"/>
-         </header>
+    if (!chat) {
+        return (
+            <header className="md:hidden sticky top-0 z-30 flex shrink-0 items-center gap-2 px-4 py-2 w-full bg-background border-b">
+                <SidebarTrigger className="-ml-1 text-foreground" />
+            </header>
         )
     }
-    if(chat.type === "direct"){
+    if (chat.type === "direct") {
         const otherUsers = chat.participants.filter(p => p.userId !== useAuthStore.getState().user?._id)
         otherUser = otherUsers.length > 0 ? otherUsers[0] : null
     }
     return (
-        <header className="flex top-10 z-10 px-4 py-2 h-16 w-full items-center justify-between bg-background  ">   
-            <div className="flex items-center gap-2 w-full"> 
-                <SidebarTrigger className="-ml-1 text-foreground "/>
-                <Separator 
+        <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center justify-between bg-background border-b px-4 py-2">
+            <div className="flex items-center gap-2 w-full">
+                <SidebarTrigger className="-ml-1 text-foreground " />
+                <Separator
                     orientation="vertical"
-                     className=" mr-2 data-[orientation=vertical]:h-4 "/>
+                    className=" mr-2 data-[orientation=vertical]:h-4 " />
                 <div className=" w-full flex items-center gap-3">
                     {/*avatar */}
                     <div className="relative">
                         {
-                            chat.type==="direct" ? (<>
-                            <UserAvatar type={"sidebar"}
-                            name={otherUser?.displayName || "Unknown User"}
-                            imageUrl={otherUser?.avatarUrl || undefined}
-                            className=""
-                            />
-                            <StatusBage status={onlineUsers.includes(otherUser?.userId || "") ? "online" : "offline"}/>
+                            chat.type === "direct" ? (<>
+                                <UserAvatar type={"sidebar"}
+                                    name={otherUser?.displayName || "Unknown User"}
+                                    imageUrl={otherUser?.avatarUrl || undefined}
+                                    className=""
+                                />
+                                <StatusBage status={onlineUsers.includes(otherUser?.userId || "") ? "online" : "offline"} />
                             </>) :
-                            <GroupchatAvatar
-                            participants={chat.participants}
-                            type={"sidebar"}
-                            />
+                                <GroupchatAvatar
+                                    participants={chat.participants}
+                                    type={"sidebar"}
+                                />
                         }
 
-                     </div>
+                    </div>
                     {/*name */}
                     <h2 className="font-semibold text-foreground">
                         {
                             chat.type === "direct" ? (otherUser?.displayName || "Unknown User") : chat.name || "Unnamed Group"}
                     </h2>
-                    
-                 </div>
+
+                </div>
             </div>
         </header>
     )

@@ -1,8 +1,10 @@
 import { useAuthStore } from '@/stores/useAuthStore';
 import axios from 'axios'
 
+const apiBaseURL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_URL;
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: apiBaseURL,
     withCredentials: true
 })
 
@@ -22,6 +24,10 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
+
         // Không retry cho các endpoint auth
         if (originalRequest.url?.includes("auth/signin") ||
             originalRequest.url?.includes("auth/signup") ||
@@ -32,7 +38,7 @@ api.interceptors.response.use(
         // Nếu lỗi 401 và chưa retry
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
-            
+
             try {
                 const res = await api.post("/auth/refreshToken", {}, { withCredentials: true });
                 const newAccessToken = res.data.metadata.tokens.accessToken;
@@ -45,9 +51,15 @@ api.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return api(originalRequest);
             } catch (refreshError) {
-                // Refresh token thất bại, đăng xuất user
-                useAuthStore.getState().clearState();
-                window.location.href = "/signin";
+                const refreshStatus = axios.isAxiosError(refreshError)
+                    ? refreshError.response?.status
+                    : undefined;
+
+                // Chỉ đăng xuất khi refresh token thực sự không hợp lệ/hết hạn
+                if (refreshStatus === 401 || refreshStatus === 403) {
+                    useAuthStore.getState().clearState();
+                    window.location.href = "/signin";
+                }
                 return Promise.reject(refreshError);
             }
         }

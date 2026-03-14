@@ -2,12 +2,12 @@ import { useChatStore } from "@/stores/useChatStore"
 import MessageInput from "./MessageInput"
 
 const ChatWindowFooter = () => {
-     const {activeConversationId, conversations} = useChatStore()
+    const { activeConversationId, conversations } = useChatStore()
     const selectedConversation = conversations.find((conversation) => conversation._id === activeConversationId) ?? null
     return (
-        <div className="  bottom-0 flex h-16 w-full items-center justify-between border-b px-4">   
-                <MessageInput selectedConversation={selectedConversation} />
-            </div>
+        <div className="sticky bottom-0 z-30 flex h-16 w-full shrink-0 items-center justify-between border-t bg-background px-4">
+            <MessageInput selectedConversation={selectedConversation} />
+        </div>
     )
 }
 

@@ -19,7 +19,23 @@ export const useChatStore = create<chatState>()(
 			messagesLoading: false,
 
 			setActiveConversation: (conversationId) => {
-				set({ activeConversationId: conversationId })
+				const userId = useAuthStore.getState().user?._id
+				set((state) => ({
+					activeConversationId: conversationId,
+					conversations: state.conversations.map((conversation) => {
+						if (!conversationId || !userId || conversation._id !== conversationId) {
+							return conversation
+						}
+
+						return {
+							...conversation,
+							unreadCounts: {
+								...(conversation.unreadCounts || {}),
+								[userId]: 0,
+							},
+						}
+					}),
+				}))
 			},
 
 			resetChatState: () => {
@@ -98,19 +114,37 @@ export const useChatStore = create<chatState>()(
 				try {
 					const { activeConversationId } = get()
 					const targetConversationId = conversationId || activeConversationId
+					const currentUserId = useAuthStore.getState().user?._id
 
-					await sendDirectMessage(
+					const response = await sendDirectMessage(
 						recipientId,
 						content,
 						imageUrl,
 						targetConversationId || undefined
 					)
 
-					if (!targetConversationId) return
+					const sentMessage = response?.message
+					if (sentMessage) {
+						await get().addMessage({
+							...sentMessage,
+							conversationId: String(sentMessage.conversationId || sentMessage.conversation || targetConversationId),
+							senderId: String(sentMessage.senderId || currentUserId || ""),
+						})
+					}
+
+					if (response?.conversation) {
+						get().updateConversation(response.conversation)
+					}
+
+					if (!targetConversationId && !response?.conversation) {
+						await get().loadConversations()
+						return
+					}
 
 					set((state) => ({
 						conversations: state.conversations.map((c) => {
-							if (c._id !== targetConversationId || !c.lastMessage) return c
+							const resolvedConversationId = targetConversationId || response?.conversation?._id
+							if (!resolvedConversationId || c._id !== resolvedConversationId || !c.lastMessage) return c
 
 							return {
 								...c,
@@ -128,7 +162,20 @@ export const useChatStore = create<chatState>()(
 
 			sendGroupMessage: async (_conversationId, _content, _imageUrl) => {
 				try {
-					await sendGroupMessage(_conversationId, _content, _imageUrl)
+					const response = await sendGroupMessage(_conversationId, _content, _imageUrl)
+					const sentMessage = response?.message
+					if (sentMessage) {
+						await get().addMessage({
+							...sentMessage,
+							conversationId: String(sentMessage.conversationId || sentMessage.conversation || _conversationId),
+							senderId: String(sentMessage.senderId),
+						})
+					}
+
+					if (response?.conversation) {
+						get().updateConversation(response.conversation)
+					}
+
 					set((state) => ({
 						conversations: state.conversations.map((c) => {
 							if (c._id !== _conversationId || !c.lastMessage) return c
@@ -146,6 +193,68 @@ export const useChatStore = create<chatState>()(
 					console.error("lỗi xảy ra khi sendGroupMessage", error)
 				}
 			},
+			addMessage: async (message) => {
+				const { user } = useAuthStore.getState()
+				const convoId = String(message.conversationId)
+				const currentUserId = user?._id
+				const isOwn = String(message.senderId) === currentUserId
+
+				set((state) => {
+					const prevItems = state.messages?.[convoId]?.items || []
+					if (prevItems.some((m) => m._id === message._id)) {
+						return state
+					}
+
+					return {
+						messages: {
+							...state.messages,
+							[convoId]: {
+								...state.messages?.[convoId],
+								items: [
+									...prevItems,
+									{
+										...message,
+										conversationId: convoId,
+										senderId: String(message.senderId),
+										isOwn,
+									},
+								],
+								hasMore: state.messages?.[convoId]?.hasMore ?? true,
+								nextCursor: state.messages?.[convoId]?.nextCursor ?? null,
+							},
+						},
+					}
+				})
+			},
+			updateConversation: (conversation) => {
+				const userId = useAuthStore.getState().user?._id
+				set((state) => {
+					const index = state.conversations.findIndex((c) => c._id === conversation._id)
+					const mergedConversation = {
+						...(index >= 0 ? state.conversations[index] : {}),
+						...conversation,
+						unreadCounts: {
+							...(index >= 0 ? state.conversations[index].unreadCounts : {}),
+							...(conversation.unreadCounts || {}),
+						},
+					}
+
+					if (userId && state.activeConversationId === mergedConversation._id) {
+						mergedConversation.unreadCounts[userId] = 0
+					}
+
+					if (index < 0) {
+						return {
+							conversations: [mergedConversation, ...state.conversations],
+						}
+					}
+
+					const remaining = state.conversations.filter((c) => c._id !== conversation._id)
+					return {
+						conversations: [mergedConversation, ...remaining],
+					}
+				})
+			}
 		}),
 		{
 			name: "chat-storage",

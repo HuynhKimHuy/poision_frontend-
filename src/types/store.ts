@@ -41,5 +41,7 @@ export interface chatState {
     fetchMessages: (conversationId: string, cursor?: string) => Promise<void>
     sendDirectMessage: (recipientId: string, content: string, imageUrl?: string, conversationId?: string) => Promise<void>
     sendGroupMessage: (conversationId: string, content: string, imageUrl?: string) => Promise<void>
+    addMessage:(Message:Message)=>Promise<any>
+    updateConversation:(conversation:Conversation)=> void
 }
 
