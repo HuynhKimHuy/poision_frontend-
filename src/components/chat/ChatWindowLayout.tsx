@@ -22,7 +22,6 @@ const ChatWindowLayout = () => {
         // return <ChatWindowSkeleton/>
     }
     return (
-<<<<<<< HEAD
         <SidebarInset className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-sm shadow-md">
             {/* <ChatWindowHeader/> */}
             <ChatWindowHeader chat={selectedConversation} />
@@ -31,16 +30,6 @@ const ChatWindowLayout = () => {
                 <ChatWindowBody />
             </div>
             {/* <ChatWindowFooter/> */}
-=======
-        <SidebarInset className="glass flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl shadow-[0_14px_40px_rgba(15,23,42,0.09)]">
-           {/* <ChatWindowHeader/> */}
-           <ChatWindowHeader chat={selectedConversation}/>       
-           {/* <ChatWindowBody/> */}
-                     <div className="flex-1 min-h-0 overflow-hidden">
-                         <ChatWindowBody/>
-                     </div>
-              {/* <ChatWindowFooter/> */}
->>>>>>> d5789f3 (created roll last message)
             <ChatWindowFooter />
         </SidebarInset>
     )
